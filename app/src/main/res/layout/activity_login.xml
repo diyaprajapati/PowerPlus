@@ -29,6 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingBottom="10dp"
+            app:endIconMode="clear_text"
             app:startIconDrawable="@drawable/baseline_person_24">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -58,7 +59,8 @@
         <Button
             android:id="@+id/buttonLogin"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
+            android:textSize="18dp"
             android:text="Login" />
 
         <!-- Signup Text -->
@@ -67,6 +69,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingTop="16dp"
+            android:paddingStart="5dp"
             android:text="Don't have an account? Signup"
             android:textColor="@android:color/holo_blue_dark" />
 
