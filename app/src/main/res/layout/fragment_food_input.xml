@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/etFoodName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Food Name" />
+
+    <EditText
+        android:id="@+id/etFoodAmount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Amount (in grams)"
+        android:inputType="number" />
+
+    <Button
+        android:id="@+id/btnAddFood"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Food" />
+
+    <TextView
+        android:id="@+id/tvFoodList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout>

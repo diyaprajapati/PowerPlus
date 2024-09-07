@@ -1,33 +1,124 @@
+//package com.example.powerplus;
+//
+//import android.content.Intent;
+//import android.os.Bundle;
+//import android.view.View;
+//import android.widget.Button;
+//
+//import androidx.appcompat.app.AppCompatActivity;
+//
+//public class MainActivity extends AppCompatActivity {
+//
+//    private Button buttonLogout;
+//
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//
+//        buttonLogout = findViewById(R.id.buttonLogout);
+//
+//        buttonLogout.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                // Clear user session or any other required actions
+//
+//                // Redirect to LoginActivity
+//                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+//                startActivity(intent);
+//                finish(); // Close the current activity
+//            }
+//        });
+//    }
+//}
+
 package com.example.powerplus;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-
+import android.view.Menu;
+import android.view.MenuItem;
+import android.content.Intent;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button buttonLogout;
+    private ViewPager2 viewPager;
+    private TabLayout tabLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        buttonLogout = findViewById(R.id.buttonLogout);
+        viewPager = findViewById(R.id.viewPager);
+        tabLayout = findViewById(R.id.tabLayout);
 
-        buttonLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Clear user session or any other required actions
+        ViewPagerAdapter adapter = new ViewPagerAdapter(this);
+        viewPager.setAdapter(adapter);
 
-                // Redirect to LoginActivity
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                startActivity(intent);
-                finish(); // Close the current activity
+        new TabLayoutMediator(tabLayout, viewPager,
+                (tab, position) -> {
+                    switch (position) {
+                        case 0:
+                            tab.setText("Dashboard");
+                            break;
+                        case 1:
+                            tab.setText("Graphs");
+                            break;
+                        case 2:
+                            tab.setText("Food Input");
+                            break;
+                    }
+                }
+        ).attach();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_logout) {
+            // Perform logout
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private class ViewPagerAdapter extends FragmentStateAdapter {
+        public ViewPagerAdapter(FragmentActivity fragmentActivity) {
+            super(fragmentActivity);
+        }
+
+        @Override
+        public Fragment createFragment(int position) {
+            switch (position) {
+                case 0:
+                    return new DashboardFragment();
+                case 1:
+                    return new GraphFragment();
+                case 2:
+                    return new FoodInputFragment();
+                default:
+                    return new DashboardFragment();
             }
-        });
+        }
+
+        @Override
+        public int getItemCount() {
+            return 3;
+        }
     }
 }
