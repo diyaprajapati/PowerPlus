@@ -4,6 +4,9 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.content.Intent;
+import android.widget.Toast;
+import android.util.Log;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.tabs.TabLayout;
@@ -20,29 +23,40 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        try {
+            setContentView(R.layout.activity_main);
 
-        viewPager = findViewById(R.id.viewPager);
-        tabLayout = findViewById(R.id.tabLayout);
+            viewPager = findViewById(R.id.viewPager);
+            tabLayout = findViewById(R.id.tabLayout);
 
-        ViewPagerAdapter adapter = new ViewPagerAdapter(this);
-        viewPager.setAdapter(adapter);
+            if (viewPager == null || tabLayout == null) {
+                throw new IllegalStateException("ViewPager or TabLayout not found in layout");
+            }
 
-        new TabLayoutMediator(tabLayout, viewPager,
-                (tab, position) -> {
-                    switch (position) {
-                        case 0:
-                            tab.setText("Dashboard");
-                            break;
-                        case 1:
-                            tab.setText("Graphs");
-                            break;
-                        case 2:
-                            tab.setText("Food Input");
-                            break;
+            ViewPagerAdapter adapter = new ViewPagerAdapter(this);
+            viewPager.setAdapter(adapter);
+
+            new TabLayoutMediator(tabLayout, viewPager,
+                    (tab, position) -> {
+                        switch (position) {
+                            case 0:
+                                tab.setText("Dashboard");
+                                break;
+                            case 1:
+                                tab.setText("Graphs");
+                                break;
+                            case 2:
+                                tab.setText("Food Input");
+                                break;
+                        }
                     }
-                }
-        ).attach();
+            ).attach();
+        } catch (Exception e) {
+            e.printStackTrace();
+            String errorMessage = "Error in MainActivity: " + e.getMessage() + "\n" + "Stack trace: " + Log.getStackTraceString(e);
+            Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
+            Log.e("MainActivity", errorMessage);
+        }
     }
 
     @Override
