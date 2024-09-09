@@ -2,6 +2,7 @@ package com.example.powerplus;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -33,12 +34,21 @@ public class LoginActivity extends AppCompatActivity {
                 String username = editTextUsername.getText().toString().trim();
                 String password = editTextPassword.getText().toString().trim();
 
+                databaseHelper.logDatabaseInfo();
+
                 if (databaseHelper.checkUser(username, password)) {
                     Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
                     // Navigate to the main screen
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    finish();
+                    try {
+                        startActivity(intent);
+                        finish();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        String errorMessage = "Error starting MainActivity: " + e.getMessage() + "\n" + "Stack trace: " + Log.getStackTraceString(e);
+                        Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                        Log.e("LoginActivity", errorMessage);
+                    }
                 } else {
                     Toast.makeText(LoginActivity.this, "Invalid Credentials", Toast.LENGTH_SHORT).show();
                 }
