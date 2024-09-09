@@ -1,6 +1,7 @@
 package com.example.powerplus;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,7 +65,7 @@ public class FoodInputFragment extends Fragment {
             public void onClick(View v) {
                 String newFoodName = etNewFoodName.getText().toString();
                 String newFoodCalories = etNewFoodCalories.getText().toString();
-                if (!newFoodName.isEmpty() && !newFoodCalories.isEmpty()) {
+                if (!newFoodName.isEmpty() && !newFoodCalories.isEmpty() && TextUtils.isDigitsOnly(newFoodCalories)) {
                     long newFoodId = databaseHelper.addFoodItem(newFoodName, Integer.parseInt(newFoodCalories));
                     if (newFoodId != -1) {
                         loadFoodItems();

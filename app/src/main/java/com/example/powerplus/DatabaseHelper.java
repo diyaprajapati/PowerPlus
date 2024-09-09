@@ -37,6 +37,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        db.execSQL("PRAGMA foreign_keys = ON;");
         String CREATE_USERS_TABLE = "CREATE TABLE " + TABLE_USERS + " ("
                 + COLUMN_USERNAME + " TEXT PRIMARY KEY, "
                 + COLUMN_PASSWORD + " TEXT)";
@@ -118,7 +119,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public long addFoodConsumption(int foodId, String date, int quantity) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COLUMN_FOOD_ID, foodId);
+        values.put(COLUMN_CONSUMPTION_FOOD_ID, foodId);
         values.put(COLUMN_CONSUMPTION_DATE, date);
         values.put(COLUMN_CONSUMPTION_QUANTITY, quantity);
 
@@ -148,7 +149,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT SUM(fi." + COLUMN_FOOD_CALORIES + " * fc." + COLUMN_CONSUMPTION_QUANTITY + ") as total_calories " +
                 "FROM " + TABLE_FOOD_CONSUMPTION + " fc " +
-                "JOIN " + TABLE_FOOD_ITEMS + " fi ON fc." + COLUMN_FOOD_ID + " = fi." + COLUMN_FOOD_ID + " " +
+                "JOIN " + TABLE_FOOD_ITEMS + " fi ON fc." + COLUMN_CONSUMPTION_FOOD_ID + " = fi." + COLUMN_FOOD_ID + " " +
                 "WHERE fc." + COLUMN_CONSUMPTION_DATE + " = ?";
         Cursor cursor = db.rawQuery(query, new String[]{date});
         int totalCalories = 0;
