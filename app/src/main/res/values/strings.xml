@@ -2,4 +2,10 @@
     <string name="app_name">PowerPlus</string>
     <string name="open">open\n</string>
     <string name="close">close</string>
+
+    <string-array name="time_ranges">
+        <item>3-day</item>
+        <item>Weekly</item>
+        <item>Monthly</item>
+    </string-array>
 </resources>

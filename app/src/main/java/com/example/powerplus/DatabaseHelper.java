@@ -176,6 +176,39 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return entries;
     }
 
+    public List<CalorieEntry> getCaloriesForLastWeek() {
+        List<CalorieEntry> entries = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        Calendar calendar = Calendar.getInstance();
+
+        for (int i = 0; i < 7; i++) {
+            String date = dateFormat.format(calendar.getTime());
+            int calories = getTotalCaloriesForDate(date);
+            entries.add(new CalorieEntry(date, calories));
+            calendar.add(Calendar.DAY_OF_MONTH, -1); // Move to the previous day
+        }
+
+        return entries;
+    }
+
+    public List<CalorieEntry> getCaloriesForLastMonth() {
+        List<CalorieEntry> entries = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        Calendar calendar = Calendar.getInstance();
+
+        for (int i = 0; i < 30; i++) {
+            String date = dateFormat.format(calendar.getTime());
+            int calories = getTotalCaloriesForDate(date);
+            entries.add(new CalorieEntry(date, calories));
+            calendar.add(Calendar.DAY_OF_MONTH, -1); // Move to the previous day
+        }
+
+        return entries;
+    }
+
+
     public void logDatabaseInfo() {
         SQLiteDatabase db = this.getReadableDatabase();
         Log.d("DatabaseHelper", "Database Path: " + db.getPath());
