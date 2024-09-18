@@ -20,16 +20,11 @@ public class FoodInputFragment extends Fragment {
     private EditText etNewFoodCalories;
     private Button btnAddNewFood;
     private TextView tvFoodList;
-
-    private List<FoodItem> foodItems = new ArrayList<>();
-    private ArrayAdapter<FoodItem> foodAdapter;
     private DatabaseHelper databaseHelper;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_food_input, container, false);
-
-        databaseHelper = new DatabaseHelper(getContext());
 
         spFoodItems = view.findViewById(R.id.spFoodItems);
         etFoodQuantity = view.findViewById(R.id.etFoodQuantity);
@@ -39,45 +34,21 @@ public class FoodInputFragment extends Fragment {
         btnAddNewFood = view.findViewById(R.id.btnAddNewFood);
         tvFoodList = view.findViewById(R.id.tvFoodList);
 
-        loadFoodItems();
+        databaseHelper = new DatabaseHelper(getContext());
 
-        foodAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, foodItems);
-        foodAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spFoodItems.setAdapter(foodAdapter);
+        loadFoodItems();
 
         btnAddSelectedFood.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FoodItem selectedFood = (FoodItem) spFoodItems.getSelectedItem();
-                String quantity = etFoodQuantity.getText().toString();
-                if (selectedFood != null && !quantity.isEmpty()) {
-                    addFoodConsumption(selectedFood.getId(), Integer.parseInt(quantity));
-                    etFoodQuantity.setText("");
-                    updateFoodList();
-                } else {
-                    Toast.makeText(getContext(), "Please select a food item and enter quantity", Toast.LENGTH_SHORT).show();
-                }
+                addSelectedFood();
             }
         });
 
         btnAddNewFood.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String newFoodName = etNewFoodName.getText().toString();
-                String newFoodCalories = etNewFoodCalories.getText().toString();
-                if (!newFoodName.isEmpty() && !newFoodCalories.isEmpty() && TextUtils.isDigitsOnly(newFoodCalories)) {
-                    long newFoodId = databaseHelper.addFoodItem(newFoodName, Integer.parseInt(newFoodCalories));
-                    if (newFoodId != -1) {
-                        loadFoodItems();
-                        etNewFoodName.setText("");
-                        etNewFoodCalories.setText("");
-                        Toast.makeText(getContext(), "New food item added", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(getContext(), "Failed to add new food item", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Toast.makeText(getContext(), "Please enter food name and calories", Toast.LENGTH_SHORT).show();
-                }
+                addNewFood();
             }
         });
 
@@ -85,21 +56,48 @@ public class FoodInputFragment extends Fragment {
     }
 
     private void loadFoodItems() {
-        foodItems.clear();
-        foodItems.addAll(databaseHelper.getAllFoodItems());
-        if (foodAdapter != null) {
-            foodAdapter.notifyDataSetChanged();
+        List<FoodItem> foodItems = databaseHelper.getAllFoodItems();
+        ArrayAdapter<FoodItem> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item,
+                foodItems);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spFoodItems.setAdapter(adapter);
+    }
+
+    private void addSelectedFood() {
+        FoodItem selectedFood = (FoodItem) spFoodItems.getSelectedItem();
+        String quantityStr = etFoodQuantity.getText().toString();
+        if (selectedFood != null && !quantityStr.isEmpty()) {
+            int quantity = Integer.parseInt(quantityStr);
+            String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+            long result = databaseHelper.addFoodConsumption(selectedFood.getId(), currentDate, quantity);
+            if (result != -1) {
+                Toast.makeText(getContext(), "Food consumption added", Toast.LENGTH_SHORT).show();
+                updateFoodList();
+                etFoodQuantity.setText("");
+            } else {
+                Toast.makeText(getContext(), "Failed to add food consumption", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(getContext(), "Please select a food item and enter quantity", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void addFoodConsumption(int foodId, int quantity) {
-        String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-        long result = databaseHelper.addFoodConsumption(foodId, currentDate, quantity);
-        if (result != -1) {
-            Toast.makeText(getContext(), "Food consumption added/updated", Toast.LENGTH_SHORT).show();
-            updateFoodList(); // Make sure to update the displayed food list
+    private void addNewFood() {
+        String foodName = etNewFoodName.getText().toString();
+        String caloriesStr = etNewFoodCalories.getText().toString();
+        if (!foodName.isEmpty() && !caloriesStr.isEmpty()) {
+            int calories = Integer.parseInt(caloriesStr);
+            long result = databaseHelper.addFoodItem(foodName, calories);
+            if (result != -1) {
+                Toast.makeText(getContext(), "New food item added", Toast.LENGTH_SHORT).show();
+                loadFoodItems();
+                etNewFoodName.setText("");
+                etNewFoodCalories.setText("");
+            } else {
+                Toast.makeText(getContext(), "Failed to add new food item", Toast.LENGTH_SHORT).show();
+            }
         } else {
-            Toast.makeText(getContext(), "Failed to add/update food consumption", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Please enter food name and calories", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -107,5 +105,11 @@ public class FoodInputFragment extends Fragment {
         String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         int totalCalories = databaseHelper.getTotalCaloriesForDate(currentDate);
         tvFoodList.setText("Total calories consumed today: " + totalCalories);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateFoodList();
     }
 }

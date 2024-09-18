@@ -9,6 +9,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import android.content.SharedPreferences;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText editTextUsername, editTextPassword;
@@ -19,6 +20,14 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SharedPreferences sharedPreferences = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
+        if (sharedPreferences.getBoolean("isLoggedIn", false)) {
+            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_login);
 
         editTextUsername = findViewById(R.id.editTextUsername);
@@ -34,21 +43,15 @@ public class LoginActivity extends AppCompatActivity {
                 String username = editTextUsername.getText().toString().trim();
                 String password = editTextPassword.getText().toString().trim();
 
-                databaseHelper.logDatabaseInfo();
-
                 if (databaseHelper.checkUser(username, password)) {
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putBoolean("isLoggedIn", true);
+                    editor.apply();
+
                     Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
-                    // Navigate to the main screen
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    try {
-                        startActivity(intent);
-                        finish();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        String errorMessage = "Error starting MainActivity: " + e.getMessage() + "\n" + "Stack trace: " + Log.getStackTraceString(e);
-                        Toast.makeText(LoginActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                        Log.e("LoginActivity", errorMessage);
-                    }
+                    startActivity(intent);
+                    finish();
                 } else {
                     Toast.makeText(LoginActivity.this, "Invalid Credentials", Toast.LENGTH_SHORT).show();
                 }

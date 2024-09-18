@@ -15,7 +15,7 @@ import java.util.Locale;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "UsersDB";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     private static final String TABLE_USERS = "users";
     private static final String COLUMN_USERNAME = "username";
     private static final String COLUMN_PASSWORD = "password";
@@ -54,8 +54,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COLUMN_CONSUMPTION_FOOD_ID + " INTEGER, "
                 + COLUMN_CONSUMPTION_DATE + " TEXT, "
                 + COLUMN_CONSUMPTION_QUANTITY + " INTEGER, "
-                + "FOREIGN KEY(" + COLUMN_CONSUMPTION_FOOD_ID + ") REFERENCES " + TABLE_FOOD_ITEMS + "(" + COLUMN_FOOD_ID + "))";
+                + "FOREIGN KEY(" + COLUMN_CONSUMPTION_FOOD_ID + ") REFERENCES " + TABLE_FOOD_ITEMS + "("
+                + COLUMN_FOOD_ID + "))";
         db.execSQL(CREATE_FOOD_CONSUMPTION_TABLE);
+
+        // Create settings table
+        String CREATE_SETTINGS_TABLE = "CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value INTEGER)";
+        db.execSQL(CREATE_SETTINGS_TABLE);
     }
 
     @Override
@@ -79,9 +84,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public boolean checkUser(String username, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] columns = {COLUMN_USERNAME};
+        String[] columns = { COLUMN_USERNAME };
         String selection = COLUMN_USERNAME + " = ? AND " + COLUMN_PASSWORD + " = ?";
-        String[] selectionArgs = {username, password};
+        String[] selectionArgs = { username, password };
 
         Cursor cursor = db.query(TABLE_USERS, columns, selection, selectionArgs, null, null, null);
         int cursorCount = cursor.getCount();
@@ -98,6 +103,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_FOOD_ITEMS, null, values);
     }
 
+    public long addFoodConsumption(int foodId, String date, int quantity) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_CONSUMPTION_FOOD_ID, foodId);
+        values.put(COLUMN_CONSUMPTION_DATE, date);
+        values.put(COLUMN_CONSUMPTION_QUANTITY, quantity);
+        return db.insert(TABLE_FOOD_CONSUMPTION, null, values);
+    }
+
     public List<FoodItem> getAllFoodItems() {
         List<FoodItem> foodItems = new ArrayList<>();
         String selectQuery = "SELECT * FROM " + TABLE_FOOD_ITEMS;
@@ -105,56 +119,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery(selectQuery, null);
         if (cursor.moveToFirst()) {
             do {
-                FoodItem item = new FoodItem();
-                item.setId(cursor.getInt(cursor.getColumnIndex(COLUMN_FOOD_ID)));
-                item.setName(cursor.getString(cursor.getColumnIndex(COLUMN_FOOD_NAME)));
-                item.setCalories(cursor.getInt(cursor.getColumnIndex(COLUMN_FOOD_CALORIES)));
-                foodItems.add(item);
+                FoodItem foodItem = new FoodItem();
+                foodItem.setId(cursor.getInt(cursor.getColumnIndex(COLUMN_FOOD_ID)));
+                foodItem.setName(cursor.getString(cursor.getColumnIndex(COLUMN_FOOD_NAME)));
+                foodItem.setCalories(cursor.getInt(cursor.getColumnIndex(COLUMN_FOOD_CALORIES)));
+                foodItems.add(foodItem);
             } while (cursor.moveToNext());
         }
         cursor.close();
         return foodItems;
     }
 
-    public long addFoodConsumption(int foodId, String date, int quantity) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_CONSUMPTION_FOOD_ID, foodId);
-        values.put(COLUMN_CONSUMPTION_DATE, date);
-        values.put(COLUMN_CONSUMPTION_QUANTITY, quantity);
-
-        // Check if an entry already exists for this food and date
-        String selection = COLUMN_FOOD_ID + " = ? AND " + COLUMN_CONSUMPTION_DATE + " = ?";
-        String[] selectionArgs = {String.valueOf(foodId), date};
-        Cursor cursor = db.query(TABLE_FOOD_CONSUMPTION, null, selection, selectionArgs, null, null, null);
-
-        long result;
-        if (cursor.moveToFirst()) {
-            // Entry exists, update the quantity
-            int existingQuantity = cursor.getInt(cursor.getColumnIndex(COLUMN_CONSUMPTION_QUANTITY));
-            int newQuantity = existingQuantity + quantity;
-            values.put(COLUMN_CONSUMPTION_QUANTITY, newQuantity);
-            int id = cursor.getInt(cursor.getColumnIndex(COLUMN_CONSUMPTION_ID));
-            result = db.update(TABLE_FOOD_CONSUMPTION, values, COLUMN_CONSUMPTION_ID + " = ?", new String[]{String.valueOf(id)});
-        } else {
-            // No existing entry, insert a new one
-            result = db.insert(TABLE_FOOD_CONSUMPTION, null, values);
-        }
-
-        cursor.close();
-        return result;
-    }
-
     public int getTotalCaloriesForDate(String date) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT SUM(fi." + COLUMN_FOOD_CALORIES + " * fc." + COLUMN_CONSUMPTION_QUANTITY + ") as total_calories " +
-                "FROM " + TABLE_FOOD_CONSUMPTION + " fc " +
-                "JOIN " + TABLE_FOOD_ITEMS + " fi ON fc." + COLUMN_CONSUMPTION_FOOD_ID + " = fi." + COLUMN_FOOD_ID + " " +
-                "WHERE fc." + COLUMN_CONSUMPTION_DATE + " = ?";
-        Cursor cursor = db.rawQuery(query, new String[]{date});
+        String query = "SELECT SUM(f." + COLUMN_FOOD_CALORIES + " * c." + COLUMN_CONSUMPTION_QUANTITY
+                + " / 100) as total_calories " +
+                "FROM " + TABLE_FOOD_CONSUMPTION + " c " +
+                "JOIN " + TABLE_FOOD_ITEMS + " f ON c." + COLUMN_CONSUMPTION_FOOD_ID + " = f." + COLUMN_FOOD_ID + " " +
+                "WHERE c." + COLUMN_CONSUMPTION_DATE + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[] { date });
         int totalCalories = 0;
         if (cursor.moveToFirst()) {
-            totalCalories = cursor.getInt(cursor.getColumnIndex("total_calories"));
+            totalCalories = cursor.getInt(0);
         }
         cursor.close();
         return totalCalories;
@@ -208,17 +194,36 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return entries;
     }
 
-
     public void logDatabaseInfo() {
         SQLiteDatabase db = this.getReadableDatabase();
         Log.d("DatabaseHelper", "Database Path: " + db.getPath());
         Log.d("DatabaseHelper", "Database Version: " + db.getVersion());
-        
+
         Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
         Log.d("DatabaseHelper", "Tables in the database:");
         while (cursor.moveToNext()) {
             Log.d("DatabaseHelper", cursor.getString(0));
         }
         cursor.close();
+    }
+
+    public void setDailyCalorieGoal(int goal) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("key", "daily_calorie_goal");
+        values.put("value", goal);
+        db.insertWithOnConflict("settings", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+    }
+
+    public int getDailyCalorieGoal() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query("settings", new String[] { "value" }, "key=?", new String[] { "daily_calorie_goal" },
+                null, null, null);
+        int goal = 2000; // Default value
+        if (cursor.moveToFirst()) {
+            goal = cursor.getInt(0);
+        }
+        cursor.close();
+        return goal;
     }
 }
