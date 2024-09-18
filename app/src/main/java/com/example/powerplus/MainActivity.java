@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.content.DialogInterface;
 import android.text.InputType;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
@@ -26,54 +27,45 @@ import java.util.Locale;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-public class MainActivity extends AppCompatActivity {
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import com.google.android.material.navigation.NavigationView;
+
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = "MainActivity";
 
-    private ViewPager2 viewPager;
-    private TabLayout tabLayout;
+    private DrawerLayout drawer;
 
     public static final String ACTION_CALORIE_GOAL_UPDATED = "com.example.powerplus.CALORIE_GOAL_UPDATED";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main);
 
-            viewPager = findViewById(R.id.viewPager);
-            tabLayout = findViewById(R.id.tabLayout);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-            if (viewPager == null || tabLayout == null) {
-                throw new IllegalStateException("ViewPager or TabLayout not found in layout");
-            }
+        drawer = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
 
-            ViewPagerAdapter adapter = new ViewPagerAdapter(this);
-            viewPager.setAdapter(adapter);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
 
-            new TabLayoutMediator(tabLayout, viewPager,
-                    (tab, position) -> {
-                        switch (position) {
-                            case 0:
-                                tab.setText("Dashboard");
-                                break;
-                            case 1:
-                                tab.setText("Graphs");
-                                break;
-                            case 2:
-                                tab.setText("Food Input");
-                                break;
-                        }
-                    }).attach();
-
-            checkAndShowCalorieGoalDialog();
-        } catch (Exception e) {
-            e.printStackTrace();
-            String errorMessage = "Error in MainActivity: " + e.getMessage() + "\n" + "Stack trace: "
-                    + Log.getStackTraceString(e);
-            Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show();
-            Log.e(TAG, errorMessage);
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                    new DashboardFragment()).commit();
+            navigationView.setCheckedItem(R.id.nav_dashboard);
         }
+
+        checkAndShowCalorieGoalDialog();
     }
 
     private void checkAndShowDailyCalorieDialog() {
@@ -205,6 +197,36 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "Error checking calorie goal", e);
             Toast.makeText(this, "Error checking calorie goal: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.nav_dashboard:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                        new DashboardFragment()).commit();
+                break;
+            case R.id.nav_graph:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                        new GraphFragment()).commit();
+                break;
+            case R.id.nav_food_input:
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                        new FoodInputFragment()).commit();
+                break;
+        }
+
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
         }
     }
 }
