@@ -1,0 +1,6 @@
+<resources>
+    <!-- Graph Colors for Dark Theme -->
+    <color name="graphTextColor">@color/colorTextDark</color>
+    <color name="graphLineColor">@color/colorAccentDarkTheme</color>
+    <color name="graphGridColor">#444444</color>
+</resources>

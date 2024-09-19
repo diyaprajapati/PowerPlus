@@ -1,6 +1,7 @@
 package com.example.powerplus;
 
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,6 +34,8 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.navigation.NavigationView;
+import androidx.appcompat.app.AppCompatDelegate;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -41,6 +44,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private DrawerLayout drawer;
 
     public static final String ACTION_CALORIE_GOAL_UPDATED = "com.example.powerplus.CALORIE_GOAL_UPDATED";
+
+    private SwitchMaterial themeSwitch;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +71,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         checkAndShowCalorieGoalDialog();
+
+        themeSwitch = findViewById(R.id.theme_switch);
+        themeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            }
+        });
+
+        // Set the switch state based on the current theme
+        int currentNightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        themeSwitch.setChecked(currentNightMode == Configuration.UI_MODE_NIGHT_YES);
     }
 
     private void checkAndShowDailyCalorieDialog() {
@@ -161,31 +179,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    private class ViewPagerAdapter extends FragmentStateAdapter {
-        public ViewPagerAdapter(FragmentActivity fragmentActivity) {
-            super(fragmentActivity);
-        }
-
-        @Override
-        public Fragment createFragment(int position) {
-            switch (position) {
-                case 0:
-                    return new DashboardFragment();
-                case 1:
-                    return new GraphFragment();
-                case 2:
-                    return new FoodInputFragment();
-                default:
-                    return new DashboardFragment();
-            }
-        }
-
-        @Override
-        public int getItemCount() {
-            return 3;
-        }
-    }
-
     private void checkAndShowCalorieGoalDialog() {
         try {
             SharedPreferences sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
@@ -202,19 +195,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        Fragment selectedFragment = null;
+
         switch (item.getItemId()) {
             case R.id.nav_dashboard:
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                        new DashboardFragment()).commit();
+                selectedFragment = new DashboardFragment();
                 break;
             case R.id.nav_graph:
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                        new GraphFragment()).commit();
+                selectedFragment = new GraphFragment();
                 break;
             case R.id.nav_food_input:
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                        new FoodInputFragment()).commit();
+                selectedFragment = new FoodInputFragment();
                 break;
+        }
+
+        if (selectedFragment != null) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
+                    selectedFragment).commit();
         }
 
         drawer.closeDrawer(GravityCompat.START);

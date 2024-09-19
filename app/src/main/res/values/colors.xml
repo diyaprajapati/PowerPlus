@@ -1,9 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="colorPrimary">#6200EE</color>
-    <color name="colorPrimaryDark">#3700B3</color>
-    <color name="colorAccent">#03DAC5</color>
-    <!-- You can add more color definitions here if needed -->
+    <!-- Common Colors -->
+    <color name="colorPrimary">#4CAF50</color>
+    <color name="colorPrimaryDark">#388E3C</color>
+    <color name="colorAccent">#8BC34A</color>
+
+    <!-- Light Theme Colors -->
+    <color name="colorBackgroundLight">#FFFFFF</color>
+    <color name="colorSurfaceLight">#F5F5F5</color>
+    <color name="colorTextLight">#212121</color>
+    <color name="colorTextSecondaryLight">#757575</color>
+
+    <!-- Dark Theme Colors -->
+    <color name="colorPrimaryDarkTheme">#2E7D32</color>
+    <color name="colorPrimaryDarkDarkTheme">#1B5E20</color>
+    <color name="colorAccentDarkTheme">#66BB6A</color>
+    <color name="colorBackgroundDark">#121212</color>
+    <color name="colorSurfaceDark">#1E1E1E</color>
+    <color name="colorTextDark">#FFFFFF</color>
+    <color name="colorTextSecondaryDark">#B0BEC5</color>
+
+    <!-- Graph Colors -->
+    <color name="graphTextColor">@color/colorTextLight</color>
+    <color name="graphLineColor">@color/colorPrimary</color>
+    <color name="graphGridColor">#CCCCCC</color>
 </resources>
