@@ -40,6 +40,13 @@
                     android:text="Calories Consumed Today: 1500"
                     android:textAppearance="?attr/textAppearanceBody1" />
 
+                <Button
+                    android:id="@+id/btnChangeCalorieGoal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Change Calorie Goal" />
+
+
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>
